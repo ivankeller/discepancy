@@ -27,7 +27,7 @@ def rejection_sampling(f):
         return rejection_sampling(f)
 
 
-def plot_density(p, size=3, linewidth=4):
+def plot_density(p, size=3, linewidth=4, title='density'):
     """Plot density function on interval [0, 1].
 
     Parameters
@@ -43,6 +43,7 @@ def plot_density(p, size=3, linewidth=4):
     y = np.vectorize(p)(x)
     plt.figure(figsize=(size, size))
     plt.plot(x, y, linewidth=linewidth)
+    plt.title(title)
 
 
 def unif(x, p0=0.5, r=0.1):
@@ -82,7 +83,7 @@ def unif_segmented(x, segments):
     0 or 1 : value of function on x
 
     """
-    in_seg = [seg[0] < x < seg[1] for seg in segments]
+    in_seg = [seg[0] <= x <= seg[1] for seg in segments]
     return functools.reduce( (lambda x, y: x or y), in_seg )
 
 
@@ -124,3 +125,13 @@ def density_drops(x, centroids, fill=0.5):
     nb_drops = len(centroids)
     r = fill / (2 * nb_drops)
     return 1 - unif_pieces(x, centroids, r)
+
+
+def rain(nb_drops, constraint=0.8):
+    centers = []
+    drop = np.random.sample()
+    for i in range(nb_drops):
+        centers.append(drop)
+        density = lambda x: density_drops(x, centers, fill=constraint)
+        drop = rejection_sampling(density)
+    return centers
