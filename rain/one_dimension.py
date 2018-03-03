@@ -128,6 +128,19 @@ def density_drops(x, centroids, fill=0.5):
 
 
 def rain(nb_drops, constraint=0.8):
+    """Sample points on interval [0,1] with constraint of in-between distance.
+    
+    Uses the iterative approach of drawning points.
+    TODO: return an generator
+    
+    Parameters
+    ----------
+    nb_drop : int
+        the number of drawn points
+    constraint : float in [0,1] (optional)
+        the higher the value (close to 1) the more equaly spaced are the points
+    
+    """
     centers = []
     drop = np.random.sample()
     for i in range(nb_drops):
@@ -135,3 +148,48 @@ def rain(nb_drops, constraint=0.8):
         density = lambda x: density_drops(x, centers, fill=constraint)
         drop = rejection_sampling(density)
     return centers
+
+
+def triangle_density(x, mode):
+    """Symetric triangle density with given mode.
+    Note: not normalized, max=1 at x=mode
+    
+    Parameters
+    ----------
+    x
+    mode : float in [0, 0.5]
+        mode of the density (argmax)
+        
+    Returns
+    -------
+    density on x : float
+    
+    """
+    if 0 <= x <= mode:
+        return x / mode
+    elif mode < x <= 2 * mode:
+        return 2 - x / mode
+    else:
+        return 0
+    
+def rain2(n, initial=0., shuffle=True):
+    """Sample points on interval [0,1] with constraint of in-between distance.
+    
+    One-shot sample, non iterative approach.
+    
+    Parameters
+    ----------
+    n : int
+        number of sampled points
+    initial : float (optional)
+        value of the first point
+    shuffle : bool
+        if True shuffle values, sorted ascending otherwise
+        
+    """
+    # n points => n-1 in-between distances
+    dists = np.array([rejection_sampling(lambda x: triangle_density(x, 1 / (n-1))) for i in range(n-1)])
+    drops = np.insert(dists.cumsum(), 0, initial)
+    if shuffle:
+        np.random.shuffle(drops)
+    return drops
