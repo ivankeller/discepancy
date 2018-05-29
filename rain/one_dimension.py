@@ -25,9 +25,47 @@ def rejection_sampling(f):
         return u
     else:
         return rejection_sampling(f)
+    
+def rejection_sampling_with_support(f, support=[(0,1)]):
+    """Sample distribution given the density function f (assumed to be f: [0, 1] -> [0, 1]) and the support of the density.
+    f does not need to be normalized.
+    
+    TODO: adapt with support, this is identical to rejection_sampling
 
+    Parameters
+    ----------
+    f : function
+        the function to sample, for example a lambda function.
+    support : list of 2-tuples of floats
+        defines the support, ie the intervals where the density is strictly positive
 
-def plot_density(p, size=3, linewidth=4, title='density'):
+    Returns
+    -------
+    sample : float
+    
+    Example
+    -------
+    rejection_sampling_with_support(lambda x: unif(x, p0=0.5, r=0.1), support=[(0.4, 0.6)])
+
+    """
+    u = np.random.sample()
+    v = np.random.sample()
+    if v < f(u):
+        return u
+    else:
+        return rejection_sampling(f)
+    
+def map_support(support):
+    """"Map support on interval [0,1].
+    
+    """
+    boundaries = list(support[0][0])
+    for interval in support:
+        length = interval[1] - interval[0]
+        boundaries.append(boundaries[-1] + support)
+        
+
+def plot_density(p, size=3, linewidth=4, title='density (non normalized)'):
     """Plot density function on interval [0, 1].
 
     Parameters
@@ -38,6 +76,8 @@ def plot_density(p, size=3, linewidth=4, title='density'):
         the size of the figure
     linewidth : int (optional)
         the line width
+    title : string (optional)
+        the title of the figure
     """
     x = np.linspace(0, 1, 1000)
     y = np.vectorize(p)(x)
@@ -151,7 +191,8 @@ def rain(nb_drops, constraint=0.8):
 
 
 def triangle_density(x, mode):
-    """Symetric triangle density with given mode.
+    """Symetric triangle density with given mode and support of 2*mode
+    
     Note: not normalized, max=1 at x=mode
     
     Parameters
@@ -172,17 +213,19 @@ def triangle_density(x, mode):
     else:
         return 0
     
+    
 def rain2(n, initial=0., shuffle=True):
     """Sample points on interval [0,1] with constraint of in-between distance.
     
     One-shot sample, non iterative approach.
+    The density of the distance between two consecutive point is a symetric triangle density with mode = mean = 1/(n-1)
     
     Parameters
     ----------
     n : int
         number of sampled points
     initial : float (optional)
-        value of the first point
+        value for the first point
     shuffle : bool
         if True shuffle values, sorted ascending otherwise
         
